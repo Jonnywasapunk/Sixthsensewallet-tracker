@@ -12,8 +12,8 @@ import { cookies } from "next/headers";
 export type Locale = "en" | "es";
 
 export const LOCALE_COOKIE = "ssp_locale";
-export const LOCALES: Locale[] = ["en", "es"];
-export const DEFAULT_LOCALE: Locale = "en";
+export const LOCALES: Locale[] = ["es", "en"];
+export const DEFAULT_LOCALE: Locale = "es";
 
 export const LOCALE_LABELS: Record<Locale, string> = {
   en: "EN",
