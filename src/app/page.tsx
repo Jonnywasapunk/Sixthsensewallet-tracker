@@ -7,6 +7,7 @@ import { getDict, type Dict, type Locale } from "@/lib/i18n";
 import { LanguageToggle } from "@/app/_components/LanguageToggle";
 import { WalletManager } from "@/app/_components/WalletManager";
 import { refreshNow } from "@/app/actions/refresh";
+import { RefreshButton } from "@/app/_components/RefreshButton";
 import type { Balance } from "@/lib/types";
 
 export const dynamic = "force-dynamic";
@@ -128,12 +129,7 @@ export default async function Dashboard({
               t={t}
             />
             <form action={refreshNow}>
-              <button
-                type="submit"
-                className="rounded-lg bg-accent px-3 py-1.5 text-sm font-medium text-white transition-colors hover:bg-accent-600"
-              >
-                {t.refreshNow}
-              </button>
+              <RefreshButton label={t.refreshNow} pendingLabel={t.refreshing} />
             </form>
             <Link
               href={exportHref}

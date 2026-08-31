@@ -34,6 +34,7 @@ export interface Dict {
   apply: string;
   exportCsv: string;
   refreshNow: string;
+  refreshing: string;
   refreshDone: string;
   refreshErrors: string;
   // sections
@@ -98,6 +99,7 @@ const en: Dict = {
   apply: "Apply",
   exportCsv: "Export CSV",
   refreshNow: "Refresh now",
+  refreshing: "Refreshing…",
   refreshDone: "Refresh complete — data is up to date.",
   refreshErrors:
     "Refresh finished with some errors (likely explorer rate limits). Try again in a moment.",
@@ -157,6 +159,7 @@ const es: Dict = {
   apply: "Aplicar",
   exportCsv: "Exportar CSV",
   refreshNow: "Actualizar ahora",
+  refreshing: "Actualizando…",
   refreshDone: "Actualización completa — los datos están al día.",
   refreshErrors:
     "La actualización terminó con algunos errores (probablemente límites del explorador). Inténtalo de nuevo en un momento.",
