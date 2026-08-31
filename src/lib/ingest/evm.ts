@@ -30,10 +30,64 @@ function apiKey(): string {
   return k;
 }
 
-async function getJson(url: string): Promise<{ status: string; message: string; result: unknown }> {
-  const res = await fetch(url, { headers: { accept: "application/json" } });
-  if (!res.ok) throw new Error(`Etherscan HTTP ${res.status}`);
-  return (await res.json()) as { status: string; message: string; result: unknown };
+// ── Rate limiting ────────────────────────────────────────────────────────────
+// The Etherscan free tier caps requests per second. A manual "Refresh now" (or
+// the cron) fans out many balance/transfer calls at once and would otherwise
+// trip "Max calls per sec rate limit reached". We serialize all Etherscan calls
+// through a single queue with a minimum gap between them, and retry the
+// transient rate-limit response a few times with backoff.
+const MIN_GAP_MS = 300; // ≈3 req/s ceiling, safely under the free-tier limit
+const MAX_RETRIES = 4;
+
+let queue: Promise<unknown> = Promise.resolve();
+let lastCallAt = 0;
+
+const sleep = (ms: number) => new Promise((r) => setTimeout(r, ms));
+
+/** Run `fn` on a global serialized queue, spaced ≥ MIN_GAP_MS apart. */
+function throttle<T>(fn: () => Promise<T>): Promise<T> {
+  const run = async (): Promise<T> => {
+    const wait = MIN_GAP_MS - (Date.now() - lastCallAt);
+    if (wait > 0) await sleep(wait);
+    try {
+      return await fn();
+    } finally {
+      lastCallAt = Date.now();
+    }
+  };
+  const result = queue.then(run, run);
+  // Keep the chain alive whether or not this call resolved.
+  queue = result.then(
+    () => undefined,
+    () => undefined,
+  );
+  return result;
+}
+
+function isRateLimit(json: { message?: string; result?: unknown }): boolean {
+  const r = typeof json.result === "string" ? json.result : "";
+  return /rate limit/i.test(r) || /rate limit/i.test(json.message ?? "");
+}
+
+async function getJson(
+  url: string,
+): Promise<{ status: string; message: string; result: unknown }> {
+  for (let attempt = 0; ; attempt++) {
+    const json = await throttle(async () => {
+      const res = await fetch(url, { headers: { accept: "application/json" } });
+      if (!res.ok) throw new Error(`Etherscan HTTP ${res.status}`);
+      return (await res.json()) as {
+        status: string;
+        message: string;
+        result: unknown;
+      };
+    });
+    if (isRateLimit(json) && attempt < MAX_RETRIES) {
+      await sleep(500 * (attempt + 1)); // linear backoff before re-queueing
+      continue;
+    }
+    return json;
+  }
 }
 
 /**
