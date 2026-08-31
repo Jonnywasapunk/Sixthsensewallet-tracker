@@ -14,6 +14,20 @@ export async function getWallets(): Promise<Wallet[]> {
   return (data ?? []) as Wallet[];
 }
 
+/** Most recent balance refresh time (ISO), or null if nothing indexed yet.
+ *  balances.updated_at is stamped on every refresh, so its max is "last synced". */
+export async function getLastUpdated(): Promise<string | null> {
+  const db = serviceClient();
+  const { data, error } = await db
+    .from("balances")
+    .select("updated_at")
+    .order("updated_at", { ascending: false })
+    .limit(1)
+    .maybeSingle();
+  if (error) throw error;
+  return (data as { updated_at: string } | null)?.updated_at ?? null;
+}
+
 export async function getBalances(walletId?: string): Promise<Balance[]> {
   const db = serviceClient();
   let q = db.from("balances").select("*");

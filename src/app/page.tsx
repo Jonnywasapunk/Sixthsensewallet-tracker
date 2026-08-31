@@ -1,6 +1,12 @@
 import Link from "next/link";
 import { logout } from "./login/actions";
-import { getBalances, getFlowTotals, getMovements, getWallets } from "@/lib/queries";
+import {
+  getBalances,
+  getFlowTotals,
+  getLastUpdated,
+  getMovements,
+  getWallets,
+} from "@/lib/queries";
 import { isWindowKey, WINDOWS, type WindowKey } from "@/lib/time-windows";
 import { addrUrl, fmtAmount, fmtDateTime, shortAddr, txUrl } from "@/lib/format";
 import { getDict, type Dict, type Locale } from "@/lib/i18n";
@@ -37,11 +43,12 @@ export default async function Dashboard({
   const walletId = sp.wallet && sp.wallet !== "all" ? sp.wallet : undefined;
   const { locale, t } = await getDict();
 
-  const [wallets, balances, totals, movements] = await Promise.all([
+  const [wallets, balances, totals, movements, lastUpdated] = await Promise.all([
     getWallets(),
     getBalances(walletId),
     getFlowTotals({ window, walletId }),
     getMovements({ window, walletId, limit: MOVEMENTS_LIMIT }),
+    getLastUpdated(),
   ]);
 
   const qp = (over: Record<string, string>) => {
@@ -143,9 +150,17 @@ export default async function Dashboard({
 
         {/* Balances */}
         <section className="mb-8">
-          <h2 className="mb-3 text-sm font-semibold uppercase tracking-wide text-text-muted">
-            {t.currentBalances}
-          </h2>
+          <div className="mb-3 flex items-baseline justify-between gap-3">
+            <h2 className="text-sm font-semibold uppercase tracking-wide text-text-muted">
+              {t.currentBalances}
+            </h2>
+            <span className="text-xs text-text-muted">
+              {t.lastUpdated}:{" "}
+              <span className="text-text">
+                {lastUpdated ? fmtDateTime(lastUpdated) : t.never}
+              </span>
+            </span>
+          </div>
           <BalancesGrid balances={balances} t={t} />
         </section>
 

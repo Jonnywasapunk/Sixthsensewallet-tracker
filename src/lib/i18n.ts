@@ -39,6 +39,8 @@ export interface Dict {
   refreshErrors: string;
   // sections
   currentBalances: string;
+  lastUpdated: string;
+  never: string;
   movementTotals: string;
   movements: string;
   latestLabel: string; // used as "(latest N)"
@@ -104,6 +106,8 @@ const en: Dict = {
   refreshErrors:
     "Refresh finished with some errors (likely explorer rate limits). Try again in a moment.",
   currentBalances: "Current balances",
+  lastUpdated: "Updated",
+  never: "never",
   movementTotals: "Movement totals",
   movements: "Movements",
   latestLabel: "latest",
@@ -164,6 +168,8 @@ const es: Dict = {
   refreshErrors:
     "La actualización terminó con algunos errores (probablemente límites del explorador). Inténtalo de nuevo en un momento.",
   currentBalances: "Saldos actuales",
+  lastUpdated: "Actualizado",
+  never: "nunca",
   movementTotals: "Totales de movimientos",
   movements: "Movimientos",
   latestLabel: "últimos",
