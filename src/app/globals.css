@@ -62,3 +62,20 @@ body {
   font-family: var(--font-display);
   letter-spacing: 0.01em;
 }
+
+/* ─────────────────────────────────────────────────────────────────────────
+   Brand mark — the real Sixth Sense Pay isotype (the hexagonal "SSP" cube),
+   pulled from sixthsensepay.com. The PNG is a single-colour glyph on a
+   transparent field, so we use it as a MASK and paint it with our own accent
+   cyan — combining the official logo with this app's palette rather than
+   shipping the raw black artwork.
+   ───────────────────────────────────────────────────────────────────────── */
+.logo-mark {
+  display: inline-block;
+  background-color: var(--brand-accent);
+  -webkit-mask: url("/brand/isotipo.png") center / contain no-repeat;
+  mask: url("/brand/isotipo.png") center / contain no-repeat;
+}
+.logo-mark:hover {
+  background-color: var(--brand-accent-600);
+}
