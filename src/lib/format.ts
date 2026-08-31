@@ -41,3 +41,30 @@ export function fmtDateTime(iso: string): string {
     timeZoneName: "short",
   });
 }
+
+/** The zones we surface for "last updated" so each regional team reads its own
+ *  wall-clock time without converting. */
+const UPDATED_ZONES: { label: string; tz: string }[] = [
+  { label: "UTC", tz: "UTC" },
+  { label: "Buenos Aires", tz: "America/Argentina/Buenos_Aires" },
+  { label: "Madrid", tz: "Europe/Madrid" },
+];
+
+/** Format an instant across the tracked zones, e.g.
+ *  [{label:"UTC", value:"Aug 31, 23:01"}, {label:"Buenos Aires", value:"Aug 31, 20:01"}, …].
+ *  24-hour time keeps it compact and unambiguous; the date is included because
+ *  Madrid can roll to the next day. */
+export function fmtUpdatedZones(iso: string): { label: string; value: string }[] {
+  const d = new Date(iso);
+  return UPDATED_ZONES.map(({ label, tz }) => ({
+    label,
+    value: d.toLocaleString("en-GB", {
+      month: "short",
+      day: "2-digit",
+      hour: "2-digit",
+      minute: "2-digit",
+      hour12: false,
+      timeZone: tz,
+    }),
+  }));
+}

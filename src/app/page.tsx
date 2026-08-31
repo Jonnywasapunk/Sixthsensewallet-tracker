@@ -8,7 +8,14 @@ import {
   getWallets,
 } from "@/lib/queries";
 import { isWindowKey, WINDOWS, type WindowKey } from "@/lib/time-windows";
-import { addrUrl, fmtAmount, fmtDateTime, shortAddr, txUrl } from "@/lib/format";
+import {
+  addrUrl,
+  fmtAmount,
+  fmtDateTime,
+  fmtUpdatedZones,
+  shortAddr,
+  txUrl,
+} from "@/lib/format";
 import { getDict, type Dict, type Locale } from "@/lib/i18n";
 import { LanguageToggle } from "@/app/_components/LanguageToggle";
 import { WalletManager } from "@/app/_components/WalletManager";
@@ -150,15 +157,23 @@ export default async function Dashboard({
 
         {/* Balances */}
         <section className="mb-8">
-          <div className="mb-3 flex items-baseline justify-between gap-3">
+          <div className="mb-3 flex flex-wrap items-baseline justify-between gap-x-3 gap-y-1">
             <h2 className="text-sm font-semibold uppercase tracking-wide text-text-muted">
               {t.currentBalances}
             </h2>
             <span className="text-xs text-text-muted">
               {t.lastUpdated}:{" "}
-              <span className="text-text">
-                {lastUpdated ? fmtDateTime(lastUpdated) : t.never}
-              </span>
+              {lastUpdated ? (
+                fmtUpdatedZones(lastUpdated).map((z, i) => (
+                  <span key={z.label}>
+                    {i > 0 && <span className="text-border"> · </span>}
+                    <span className="text-text-muted">{z.label}</span>{" "}
+                    <span className="text-text">{z.value}</span>
+                  </span>
+                ))
+              ) : (
+                <span className="text-text">{t.never}</span>
+              )}
             </span>
           </div>
           <BalancesGrid balances={balances} t={t} />
