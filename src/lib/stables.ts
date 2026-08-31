@@ -8,19 +8,31 @@
 // ─────────────────────────────────────────────────────────────────────────────
 
 export type Chain = "polygon" | "tron";
-export type Asset = "USDT" | "USDC";
+export type Asset = "USDT" | "USDC" | "POL" | "ARSE";
 
 export interface Stable {
   asset: Asset;
   chain: Chain;
-  /** Token contract address (checksum for EVM, base58 for Tron). */
+  /** Token contract address (checksum for EVM, base58 for Tron). Use "native"
+   *  for a chain's native coin (no ERC-20/TRC-20 contract). */
   contract: string;
   /** Token decimals — used to convert raw integer amounts to human units. */
   decimals: number;
+  /** Native chain coin (e.g. POL on Polygon): balance-only, no transfer index. */
+  native?: boolean;
 }
 
 export const STABLES: Stable[] = [
   // ── Polygon (chainid 137) ──────────────────────────────────────────────────
+  {
+    // Native Polygon coin (POL, formerly MATIC). Balance-only — read via the
+    // account balance call, not tokenbalance. No transfers indexed.
+    asset: "POL",
+    chain: "polygon",
+    contract: "native",
+    decimals: 18,
+    native: true,
+  },
   {
     asset: "USDT",
     chain: "polygon",
@@ -52,7 +64,12 @@ export const STABLES: Stable[] = [
 ];
 
 export const CHAINS: Chain[] = ["polygon", "tron"];
-export const ASSETS: Asset[] = ["USDT", "USDC"];
+export const ASSETS: Asset[] = ["USDT", "USDC", "POL", "ARSE"];
+
+/** Stables that have indexable transfers (excludes native coins). */
+export function tokenStablesForChain(chain: Chain): Stable[] {
+  return STABLES.filter((s) => s.chain === chain && !s.native);
+}
 
 /** Etherscan V2 chainid per EVM chain. */
 export const EVM_CHAIN_ID: Record<string, number> = {

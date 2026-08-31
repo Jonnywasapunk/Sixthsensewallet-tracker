@@ -103,16 +103,19 @@ export async function fetchEvmTransfers(
   return { transfers: out, lastBlock };
 }
 
-/** Read the current on-chain token balance (decimal string) for an address. */
+/** Read the current on-chain balance (decimal string) for an address. Handles
+ *  both ERC-20 tokens (tokenbalance) and the native coin (balance). */
 export async function fetchEvmBalance(
   stable: Stable,
   address: string,
 ): Promise<string> {
   const chainId = EVM_CHAIN_ID[stable.chain];
-  const url =
-    `${BASE}?chainid=${chainId}&module=account&action=tokenbalance` +
-    `&contractaddress=${stable.contract}&address=${address}&tag=latest` +
-    `&apikey=${apiKey()}`;
+  const url = stable.native
+    ? `${BASE}?chainid=${chainId}&module=account&action=balance` +
+      `&address=${address}&tag=latest&apikey=${apiKey()}`
+    : `${BASE}?chainid=${chainId}&module=account&action=tokenbalance` +
+      `&contractaddress=${stable.contract}&address=${address}&tag=latest` +
+      `&apikey=${apiKey()}`;
   const json = await getJson(url);
   if (json.status !== "1" && typeof json.result === "string" && !/^\d+$/.test(json.result)) {
     throw new Error(`Etherscan balance: ${json.result}`);

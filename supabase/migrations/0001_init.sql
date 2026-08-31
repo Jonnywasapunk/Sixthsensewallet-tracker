@@ -22,7 +22,7 @@ create table if not exists public.transfers (
   direction     text not null check (direction in ('in','out')),
   counterparty  text not null,
   amount        numeric not null,
-  asset         text not null check (asset in ('USDT','USDC')),
+  asset         text not null check (asset in ('USDT','USDC','POL','ARSE')),
   chain         text not null check (chain in ('polygon','tron')),
   block_number  bigint not null default 0,
   block_time    timestamptz not null,
@@ -44,7 +44,7 @@ create index if not exists transfers_asset_idx
 -- summed from transfers). One row per (wallet, asset).
 create table if not exists public.balances (
   wallet_id  uuid not null references public.wallets(id) on delete cascade,
-  asset      text not null check (asset in ('USDT','USDC')),
+  asset      text not null check (asset in ('USDT','USDC','POL','ARSE')),
   chain      text not null check (chain in ('polygon','tron')),
   amount     numeric not null default 0,
   updated_at timestamptz not null default now(),

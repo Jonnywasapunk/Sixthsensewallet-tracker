@@ -69,7 +69,8 @@ export async function runIngest(
         let transfers: RawTransfer[] = [];
 
         // ── Transfers ─────────────────────────────────────────────────────
-        if (doTransfers) {
+        // Native coins (e.g. POL) are balance-only — no transfer index.
+        if (doTransfers && !stable.native) {
         const cursor = await cursors.get(wallet.chain, wallet.address, stable.asset);
         const fetched = await fetchTransfers(stable, wallet.address, cursor);
         transfers = fetched.transfers;
