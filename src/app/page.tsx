@@ -6,9 +6,11 @@ import { addrUrl, fmtAmount, fmtDateTime, shortAddr, txUrl } from "@/lib/format"
 import { getDict, type Dict, type Locale } from "@/lib/i18n";
 import { LanguageToggle } from "@/app/_components/LanguageToggle";
 import { WalletManager } from "@/app/_components/WalletManager";
+import { refreshNow } from "@/app/actions/refresh";
 import type { Balance } from "@/lib/types";
 
 export const dynamic = "force-dynamic";
+export const maxDuration = 300; // manual "Refresh now" runs the full indexer
 
 const MOVEMENTS_LIMIT = 200;
 
@@ -25,6 +27,8 @@ export default async function Dashboard({
     wallet?: string;
     wok?: string;
     werr?: string;
+    rok?: string;
+    rerr?: string;
   }>;
 }) {
   const sp = await searchParams;
@@ -123,6 +127,14 @@ export default async function Dashboard({
               window={window}
               t={t}
             />
+            <form action={refreshNow}>
+              <button
+                type="submit"
+                className="rounded-lg bg-accent px-3 py-1.5 text-sm font-medium text-white transition-colors hover:bg-accent-600"
+              >
+                {t.refreshNow}
+              </button>
+            </form>
             <Link
               href={exportHref}
               className="rounded-lg border border-border bg-surface px-3 py-1.5 text-sm text-text hover:bg-surface-2"
@@ -266,9 +278,11 @@ export default async function Dashboard({
 }
 
 function feedbackBanner(
-  sp: { wok?: string; werr?: string },
+  sp: { wok?: string; werr?: string; rok?: string; rerr?: string },
   t: Dict,
 ): { tone: "pos" | "neg"; message: string } | null {
+  if (sp.rok === "1") return { tone: "pos", message: t.refreshDone };
+  if (sp.rerr === "1") return { tone: "neg", message: t.refreshErrors };
   if (sp.wok === "added") return { tone: "pos", message: t.walletAdded };
   if (sp.wok === "removed") return { tone: "pos", message: t.walletRemoved };
   if (sp.werr === "exists") return { tone: "neg", message: t.errExists };

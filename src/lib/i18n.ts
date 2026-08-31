@@ -33,6 +33,9 @@ export interface Dict {
   allWallets: string;
   apply: string;
   exportCsv: string;
+  refreshNow: string;
+  refreshDone: string;
+  refreshErrors: string;
   // sections
   currentBalances: string;
   movementTotals: string;
@@ -94,6 +97,10 @@ const en: Dict = {
   allWallets: "All wallets",
   apply: "Apply",
   exportCsv: "Export CSV",
+  refreshNow: "Refresh now",
+  refreshDone: "Refresh complete — data is up to date.",
+  refreshErrors:
+    "Refresh finished with some errors (likely explorer rate limits). Try again in a moment.",
   currentBalances: "Current balances",
   movementTotals: "Movement totals",
   movements: "Movements",
@@ -149,6 +156,10 @@ const es: Dict = {
   allWallets: "Todas las billeteras",
   apply: "Aplicar",
   exportCsv: "Exportar CSV",
+  refreshNow: "Actualizar ahora",
+  refreshDone: "Actualización completa — los datos están al día.",
+  refreshErrors:
+    "La actualización terminó con algunos errores (probablemente límites del explorador). Inténtalo de nuevo en un momento.",
   currentBalances: "Saldos actuales",
   movementTotals: "Totales de movimientos",
   movements: "Movimientos",
