@@ -47,6 +47,13 @@ export const STABLES: Stable[] = [
     contract: "0x3c499c542cEF5E3811e1192ce70d8cC03d5c3359",
     decimals: 6,
   },
+  {
+    // ARSE stablecoin on Polygon (on-chain symbol "ARSe"), verified on-chain.
+    asset: "ARSE",
+    chain: "polygon",
+    contract: "0x2278485e81b735E0F79fDca936F901D0727E6603",
+    decimals: 6,
+  },
 
   // ── Tron (TRC-20) ──────────────────────────────────────────────────────────
   {
