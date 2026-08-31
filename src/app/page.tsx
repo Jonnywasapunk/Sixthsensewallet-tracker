@@ -1,0 +1,317 @@
+import Link from "next/link";
+import { logout } from "./login/actions";
+import { getBalances, getFlowTotals, getMovements, getWallets } from "@/lib/queries";
+import { isWindowKey, WINDOWS, type WindowKey } from "@/lib/time-windows";
+import { addrUrl, fmtAmount, fmtDateTime, shortAddr, txUrl } from "@/lib/format";
+import type { Balance } from "@/lib/types";
+
+export const dynamic = "force-dynamic";
+
+const MOVEMENTS_LIMIT = 200;
+
+export default async function Dashboard({
+  searchParams,
+}: {
+  searchParams: Promise<{ w?: string; wallet?: string }>;
+}) {
+  const sp = await searchParams;
+  const window: WindowKey = isWindowKey(sp.w) ? sp.w : "all";
+  const walletId = sp.wallet && sp.wallet !== "all" ? sp.wallet : undefined;
+
+  const [wallets, balances, totals, movements] = await Promise.all([
+    getWallets(),
+    getBalances(walletId),
+    getFlowTotals({ window, walletId }),
+    getMovements({ window, walletId, limit: MOVEMENTS_LIMIT }),
+  ]);
+
+  const qp = (over: Record<string, string>) => {
+    const p = new URLSearchParams();
+    p.set("w", over.w ?? window);
+    const wal = over.wallet ?? sp.wallet ?? "all";
+    if (wal && wal !== "all") p.set("wallet", wal);
+    return `/?${p.toString()}`;
+  };
+
+  const exportHref = (() => {
+    const p = new URLSearchParams();
+    p.set("w", window);
+    if (walletId) p.set("wallet", walletId);
+    return `/api/export?${p.toString()}`;
+  })();
+
+  return (
+    <main className="min-h-screen bg-bg">
+      {/* Header */}
+      <header className="border-b border-border bg-surface">
+        <div className="mx-auto flex max-w-6xl items-center justify-between px-6 py-4">
+          <div className="flex items-center gap-3">
+            <div className="h-9 w-9 rounded-lg bg-accent" aria-hidden />
+            <div>
+              <h1 className="font-display text-xl leading-none text-text">
+                Sixth Sense Pay
+              </h1>
+              <p className="text-xs text-text-muted">Wallet tracker</p>
+            </div>
+          </div>
+          <form action={logout}>
+            <button className="rounded-lg border border-border px-3 py-1.5 text-sm text-text-muted hover:bg-surface-2">
+              Sign out
+            </button>
+          </form>
+        </div>
+      </header>
+
+      <div className="mx-auto max-w-6xl px-6 py-6">
+        {/* Filters */}
+        <div className="mb-6 flex flex-wrap items-center justify-between gap-3">
+          <nav className="inline-flex rounded-lg border border-border bg-surface p-1">
+            {WINDOWS.map((w) => (
+              <Link
+                key={w.key}
+                href={qp({ w: w.key })}
+                className={`rounded-md px-3 py-1.5 text-sm transition-colors ${
+                  window === w.key
+                    ? "bg-accent text-white"
+                    : "text-text-muted hover:bg-surface-2"
+                }`}
+              >
+                {w.label}
+              </Link>
+            ))}
+          </nav>
+
+          <div className="flex items-center gap-3">
+            <WalletFilter
+              wallets={wallets}
+              current={sp.wallet ?? "all"}
+              window={window}
+            />
+            <Link
+              href={exportHref}
+              className="rounded-lg border border-border bg-surface px-3 py-1.5 text-sm text-text hover:bg-surface-2"
+              prefetch={false}
+            >
+              Export CSV
+            </Link>
+          </div>
+        </div>
+
+        {/* Balances */}
+        <section className="mb-8">
+          <h2 className="mb-3 text-sm font-semibold uppercase tracking-wide text-text-muted">
+            Current balances
+          </h2>
+          <BalancesGrid balances={balances} />
+        </section>
+
+        {/* Flow totals for the window */}
+        <section className="mb-8">
+          <h2 className="mb-3 text-sm font-semibold uppercase tracking-wide text-text-muted">
+            Movement totals · {WINDOWS.find((w) => w.key === window)?.label}
+          </h2>
+          {totals.length === 0 ? (
+            <Empty>No movements in this window.</Empty>
+          ) : (
+            <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-3">
+              {totals.map((t) => (
+                <div
+                  key={t.asset}
+                  className="rounded-xl border border-border bg-surface p-4"
+                >
+                  <div className="mb-2 flex items-center justify-between">
+                    <span className="font-display text-lg text-text">{t.asset}</span>
+                    <span className="text-xs text-text-muted">{t.count} txns</span>
+                  </div>
+                  <div className="space-y-1 text-sm">
+                    <Row label="Inbound" value={`+${fmtAmount(t.inbound)}`} tone="pos" />
+                    <Row label="Outbound" value={`−${fmtAmount(t.outbound)}`} tone="neg" />
+                    <Row label="Net" value={fmtAmount(t.net)} strong />
+                  </div>
+                </div>
+              ))}
+            </div>
+          )}
+        </section>
+
+        {/* Movements */}
+        <section>
+          <h2 className="mb-3 text-sm font-semibold uppercase tracking-wide text-text-muted">
+            Movements{" "}
+            <span className="font-normal normal-case">
+              (latest {Math.min(movements.length, MOVEMENTS_LIMIT)})
+            </span>
+          </h2>
+          {movements.length === 0 ? (
+            <Empty>No transfers indexed for this selection yet.</Empty>
+          ) : (
+            <div className="overflow-x-auto rounded-xl border border-border bg-surface">
+              <table className="w-full text-sm">
+                <thead>
+                  <tr className="border-b border-border text-left text-xs uppercase tracking-wide text-text-muted">
+                    <th className="px-4 py-3 font-medium">When (UTC)</th>
+                    <th className="px-4 py-3 font-medium">Wallet</th>
+                    <th className="px-4 py-3 font-medium">Dir</th>
+                    <th className="px-4 py-3 font-medium">Counterparty</th>
+                    <th className="px-4 py-3 text-right font-medium">Amount</th>
+                    <th className="px-4 py-3 font-medium">Asset</th>
+                    <th className="px-4 py-3 font-medium">Chain</th>
+                    <th className="px-4 py-3 font-medium">Tx</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {movements.map((m) => (
+                    <tr
+                      key={`${m.tx_hash}-${m.direction}-${m.counterparty}-${m.amount}`}
+                      className="border-b border-border/60 last:border-0 hover:bg-surface-2"
+                    >
+                      <td className="whitespace-nowrap px-4 py-3 text-text-muted">
+                        {fmtDateTime(m.block_time)}
+                      </td>
+                      <td className="whitespace-nowrap px-4 py-3">{m.wallet_label}</td>
+                      <td className="px-4 py-3">
+                        <span
+                          className={`rounded px-1.5 py-0.5 text-xs font-medium ${
+                            m.direction === "in"
+                              ? "bg-pos/10 text-pos"
+                              : "bg-neg/10 text-neg"
+                          }`}
+                        >
+                          {m.direction === "in" ? "IN" : "OUT"}
+                        </span>
+                      </td>
+                      <td className="whitespace-nowrap px-4 py-3">
+                        <a
+                          href={addrUrl(m.chain, m.counterparty)}
+                          target="_blank"
+                          rel="noreferrer"
+                          className="text-accent-600 hover:underline"
+                        >
+                          {shortAddr(m.counterparty)}
+                        </a>
+                      </td>
+                      <td
+                        className={`whitespace-nowrap px-4 py-3 text-right font-medium ${
+                          m.direction === "in" ? "text-pos" : "text-neg"
+                        }`}
+                      >
+                        {m.direction === "in" ? "+" : "−"}
+                        {fmtAmount(m.amount)}
+                      </td>
+                      <td className="px-4 py-3">{m.asset}</td>
+                      <td className="px-4 py-3 capitalize">{m.chain}</td>
+                      <td className="whitespace-nowrap px-4 py-3">
+                        <a
+                          href={txUrl(m.chain, m.tx_hash)}
+                          target="_blank"
+                          rel="noreferrer"
+                          className="text-accent-600 hover:underline"
+                        >
+                          {shortAddr(m.tx_hash)}
+                        </a>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          )}
+        </section>
+      </div>
+    </main>
+  );
+}
+
+function BalancesGrid({ balances }: { balances: Balance[] }) {
+  if (balances.length === 0) {
+    return <Empty>No balances recorded yet. Run a refresh to populate.</Empty>;
+  }
+  return (
+    <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-4">
+      {balances
+        .slice()
+        .sort(
+          (a, b) =>
+            a.chain.localeCompare(b.chain) || a.asset.localeCompare(b.asset),
+        )
+        .map((b) => (
+          <div
+            key={`${b.wallet_id}-${b.asset}`}
+            className="rounded-xl border border-border bg-surface p-4"
+          >
+            <div className="mb-1 text-xs uppercase tracking-wide text-text-muted">
+              {b.asset} · <span className="capitalize">{b.chain}</span>
+            </div>
+            <div className="font-display text-xl text-text">
+              {fmtAmount(b.amount)}
+            </div>
+          </div>
+        ))}
+    </div>
+  );
+}
+
+function WalletFilter({
+  wallets,
+  current,
+  window,
+}: {
+  wallets: { id: string; label: string }[];
+  current: string;
+  window: WindowKey;
+}) {
+  // Plain GET form — no client JS needed. Hidden `w` preserves the window.
+  return (
+    <form method="get" className="flex items-center gap-2">
+      <input type="hidden" name="w" value={window} />
+      <select
+        name="wallet"
+        defaultValue={current}
+        className="rounded-lg border border-border bg-surface px-3 py-1.5 text-sm text-text"
+      >
+        <option value="all">All wallets</option>
+        {wallets.map((w) => (
+          <option key={w.id} value={w.id}>
+            {w.label}
+          </option>
+        ))}
+      </select>
+      <button className="rounded-lg border border-border bg-surface px-3 py-1.5 text-sm text-text hover:bg-surface-2">
+        Apply
+      </button>
+    </form>
+  );
+}
+
+function Row({
+  label,
+  value,
+  tone,
+  strong,
+}: {
+  label: string;
+  value: string;
+  tone?: "pos" | "neg";
+  strong?: boolean;
+}) {
+  return (
+    <div className="flex items-center justify-between">
+      <span className="text-text-muted">{label}</span>
+      <span
+        className={`${strong ? "font-semibold text-text" : ""} ${
+          tone === "pos" ? "text-pos" : tone === "neg" ? "text-neg" : ""
+        }`}
+      >
+        {value}
+      </span>
+    </div>
+  );
+}
+
+function Empty({ children }: { children: React.ReactNode }) {
+  return (
+    <div className="rounded-xl border border-dashed border-border bg-surface-2 px-4 py-8 text-center text-sm text-text-muted">
+      {children}
+    </div>
+  );
+}

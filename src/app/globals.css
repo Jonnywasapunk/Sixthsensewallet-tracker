@@ -1,0 +1,64 @@
+/* Fonts — Google Fonts. If offline/self-hosting later, swap these @imports. */
+@import url("https://fonts.googleapis.com/css2?family=Archivo:wght@400;500;600;700&display=swap");
+@import url("https://fonts.googleapis.com/css2?family=Bitcount+Grid+Double:wght@400;600;700&display=swap");
+@import "tailwindcss";
+
+/* ─────────────────────────────────────────────────────────────────────────
+   Sixth Sense Pay — ALTERNATIVE brand palette.
+   Accent is cyan/blue (#54b8d3). The primary red (#e93223) is intentionally
+   NOT used anywhere as an accent.
+   Fonts: Archivo (body), Bitcount Grid Double (display/titles).
+   ───────────────────────────────────────────────────────────────────────── */
+
+:root {
+  --brand-accent: #54b8d3;
+  --brand-accent-600: #3ba3c0;
+  --brand-accent-050: #e7f5f9;
+  --brand-dark: #0f0f0f;
+  --brand-cream: #f4ebe4;
+
+  --bg: var(--brand-cream);
+  --surface: #ffffff;
+  --surface-2: #faf6f2;
+  --border: #e4d8cd;
+  --text: var(--brand-dark);
+  --text-muted: #6b6560;
+
+  --pos: #1f9d6b; /* inbound (in) */
+  --neg: #b4553a; /* outbound (out) — warm, not the brand red */
+}
+
+@theme inline {
+  --color-accent: var(--brand-accent);
+  --color-accent-600: var(--brand-accent-600);
+  --color-accent-050: var(--brand-accent-050);
+  --color-dark: var(--brand-dark);
+  --color-cream: var(--brand-cream);
+  --color-bg: var(--bg);
+  --color-surface: var(--surface);
+  --color-surface-2: var(--surface-2);
+  --color-border: var(--border);
+  --color-text: var(--text);
+  --color-text-muted: var(--text-muted);
+  --color-pos: var(--pos);
+  --color-neg: var(--neg);
+
+  --font-body: "Archivo", ui-sans-serif, system-ui, sans-serif;
+  --font-display: "Bitcount Grid Double", "Archivo", ui-sans-serif, system-ui, sans-serif;
+}
+
+html {
+  color-scheme: light;
+}
+
+body {
+  background: var(--bg);
+  color: var(--text);
+  font-family: var(--font-body);
+  -webkit-font-smoothing: antialiased;
+}
+
+.font-display {
+  font-family: var(--font-display);
+  letter-spacing: 0.01em;
+}

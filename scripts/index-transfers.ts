@@ -1,0 +1,31 @@
+import { db, CACHE_DIR } from "./_bootstrap";
+import { FileCursorStore } from "../src/lib/ingest/cursor";
+import { runIngest } from "../src/lib/ingest/run";
+import type { Wallet } from "../src/lib/types";
+
+// Index transfers only (resumable via .cache/), no balance refresh.
+async function main() {
+  const client = db();
+  const { data, error } = await client.from("wallets").select("*");
+  if (error) {
+    console.error("Failed to load wallets:", error.message);
+    process.exit(1);
+  }
+  const wallets = (data ?? []) as Wallet[];
+  if (wallets.length === 0) {
+    console.log("No wallets registered. Run `npm run seed` first.");
+    return;
+  }
+
+  const summary = await runIngest(client, wallets, new FileCursorStore(CACHE_DIR), {
+    transfers: true,
+    balances: false,
+  });
+  console.log(`Transfers upserted: ${summary.transfersUpserted}`);
+  if (summary.errors.length) {
+    for (const e of summary.errors) console.log(`  ! ${e}`);
+    process.exit(1);
+  }
+}
+
+main();
