@@ -1,6 +1,9 @@
-import { addCvu, deleteCvu } from "@/app/actions/cvus";
+import { addCvu, deleteCvu, updateCvuUser } from "@/app/actions/cvus";
 import type { Dict } from "@/lib/i18n";
 import type { Cvu } from "@/lib/types";
+
+// Default user for new CVUs (can be changed per-row after adding).
+const DEFAULT_CVU_USER = "support@sixthsensepay.com";
 
 /**
  * CVUs (Kripton) — a manually managed reference list of virtual accounts.
@@ -58,9 +61,16 @@ export function CvuManager({ cvus, t }: { cvus: Cvu[]; t: Dict }) {
                     </div>
                   </div>
                   <div className="mt-2 font-mono text-xs text-text">{c.cvu}</div>
-                  <div className="mt-1 flex flex-wrap gap-x-3 gap-y-0.5 text-xs text-text-muted">
-                    {c.numero && <span>{t.fieldNumero}: {c.numero}</span>}
-                    {c.usuario && <span className="truncate">{c.usuario}</span>}
+                  {c.numero && (
+                    <div className="mt-1 text-xs text-text-muted">
+                      {t.fieldNumero}: {c.numero}
+                    </div>
+                  )}
+                  <div className="mt-2">
+                    <label className="mb-1 block text-xs font-medium text-text-muted">
+                      {t.fieldUsuario}
+                    </label>
+                    <EditUserForm id={c.id} usuario={c.usuario} saveLabel={t.save} />
                   </div>
                 </li>
               ))}
@@ -100,8 +110,12 @@ export function CvuManager({ cvus, t }: { cvus: Cvu[]; t: Dict }) {
                           label={estadoLabel(c.estado)}
                         />
                       </td>
-                      <td className="whitespace-nowrap px-4 py-3 text-text-muted">
-                        {c.usuario ?? "—"}
+                      <td className="px-4 py-3">
+                        <EditUserForm
+                          id={c.id}
+                          usuario={c.usuario}
+                          saveLabel={t.save}
+                        />
                       </td>
                       <td className="px-4 py-3 text-right">
                         <form action={deleteCvu}>
@@ -159,6 +173,7 @@ export function CvuManager({ cvus, t }: { cvus: Cvu[]; t: Dict }) {
             <input
               name="usuario"
               type="email"
+              defaultValue={DEFAULT_CVU_USER}
               className={inputCls}
               placeholder="user@…"
             />
@@ -200,6 +215,37 @@ function Field({
       <label className="mb-1 block text-xs font-medium text-text">{label}</label>
       {children}
     </div>
+  );
+}
+
+/** Inline per-row editor for the CVU's linked user. Plain form → Server Action,
+ *  no client JS; submits the new value and re-renders with a confirmation. */
+function EditUserForm({
+  id,
+  usuario,
+  saveLabel,
+}: {
+  id: string;
+  usuario: string | null;
+  saveLabel: string;
+}) {
+  return (
+    <form action={updateCvuUser} className="flex items-center gap-1.5">
+      <input type="hidden" name="id" value={id} />
+      <input
+        name="usuario"
+        type="email"
+        defaultValue={usuario ?? ""}
+        placeholder="—"
+        className="min-w-0 flex-1 rounded-md border border-border bg-surface-2 px-2 py-1 text-xs text-text outline-none focus:border-accent focus:ring-2 focus:ring-accent-050 sm:w-52 sm:flex-none"
+      />
+      <button
+        type="submit"
+        className="whitespace-nowrap rounded-md border border-border px-2 py-1 text-xs text-text-muted hover:bg-surface-2"
+      >
+        {saveLabel}
+      </button>
+    </form>
   );
 }
 

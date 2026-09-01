@@ -101,8 +101,10 @@ export interface Dict {
   estadoActiva: string;
   estadoInactiva: string;
   noCvus: string;
+  save: string;
   cvuAdded: string;
   cvuRemoved: string;
+  cvuUpdated: string;
   cerrAlias: string;
   cerrInvalid: string;
   cerrExists: string;
@@ -180,8 +182,10 @@ const en: Dict = {
   estadoActiva: "Active",
   estadoInactiva: "Inactive",
   noCvus: "No CVUs yet. Add one below.",
+  save: "Save",
   cvuAdded: "CVU added.",
   cvuRemoved: "CVU removed.",
+  cvuUpdated: "User updated.",
   cerrAlias: "Please enter an alias.",
   cerrInvalid: "The CVU/CBU must be 22 digits.",
   cerrExists: "That CVU is already in the list.",
@@ -260,8 +264,10 @@ const es: Dict = {
   estadoActiva: "Activa",
   estadoInactiva: "Inactiva",
   noCvus: "Aún no hay CVUs. Agrega uno abajo.",
+  save: "Guardar",
   cvuAdded: "CVU agregado.",
   cvuRemoved: "CVU eliminado.",
+  cvuUpdated: "Usuario actualizado.",
   cerrAlias: "Ingresa un alias.",
   cerrInvalid: "El CVU/CBU debe tener 22 dígitos.",
   cerrExists: "Ese CVU ya está en la lista.",

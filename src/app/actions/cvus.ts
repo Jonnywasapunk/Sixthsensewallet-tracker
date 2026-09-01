@@ -45,6 +45,24 @@ export async function addCvu(formData: FormData): Promise<void> {
   redirect("/?cok=added");
 }
 
+export async function updateCvuUser(formData: FormData): Promise<void> {
+  await assertAuthed();
+
+  const id = String(formData.get("id") ?? "");
+  const usuario = String(formData.get("usuario") ?? "").trim();
+  if (!id) redirect("/");
+
+  const db = serviceClient();
+  const { error } = await db
+    .from("cvus")
+    .update({ usuario: usuario || null })
+    .eq("id", id);
+  if (error) throw new Error(`update cvu user: ${error.message}`);
+
+  revalidatePath("/");
+  redirect("/?cok=updated");
+}
+
 export async function deleteCvu(formData: FormData): Promise<void> {
   await assertAuthed();
 

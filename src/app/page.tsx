@@ -399,6 +399,7 @@ function feedbackBanner(
   if (sp.werr === "name") return { tone: "neg", message: t.errName };
   if (sp.cok === "added") return { tone: "pos", message: t.cvuAdded };
   if (sp.cok === "removed") return { tone: "pos", message: t.cvuRemoved };
+  if (sp.cok === "updated") return { tone: "pos", message: t.cvuUpdated };
   if (sp.cerr === "exists") return { tone: "neg", message: t.cerrExists };
   if (sp.cerr === "invalid") return { tone: "neg", message: t.cerrInvalid };
   if (sp.cerr === "alias") return { tone: "neg", message: t.cerrAlias };
