@@ -64,9 +64,13 @@ function throttle<T>(fn: () => Promise<T>): Promise<T> {
   return result;
 }
 
-function isRateLimit(json: { message?: string; result?: unknown }): boolean {
+// Transient Etherscan V2 responses worth retrying: per-second rate limits and
+// the spurious "Invalid API Key" (#err2) it returns under load even when the
+// key is valid (other calls in the same run succeed with it).
+function isRetryable(json: { message?: string; result?: unknown }): boolean {
   const r = typeof json.result === "string" ? json.result : "";
-  return /rate limit/i.test(r) || /rate limit/i.test(json.message ?? "");
+  const m = json.message ?? "";
+  return /rate limit|invalid api key|max calls|NOTOK/i.test(`${r} ${m}`);
 }
 
 async function getJson(
@@ -82,7 +86,9 @@ async function getJson(
         result: unknown;
       };
     });
-    if (isRateLimit(json) && attempt < MAX_RETRIES) {
+    // Don't retry a genuine empty result ("No transactions found" is status 0
+    // with an empty array) — only the transient NOTOK/rate-limit/key messages.
+    if (isRetryable(json) && attempt < MAX_RETRIES) {
       await sleep(500 * (attempt + 1)); // linear backoff before re-queueing
       continue;
     }

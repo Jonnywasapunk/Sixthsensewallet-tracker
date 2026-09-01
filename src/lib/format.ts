@@ -20,12 +20,16 @@ export function shortAddr(addr: string): string {
 /** Block explorer URL for a tx hash on a given chain. */
 export function txUrl(chain: Chain, hash: string): string {
   if (chain === "polygon") return `https://polygonscan.com/tx/${hash}`;
+  if (chain === "ethereum") return `https://etherscan.io/tx/${hash}`;
+  if (chain === "maka") return `https://makascan.io/tx/${hash}`;
   return `https://tronscan.org/#/transaction/${hash}`;
 }
 
 /** Block explorer URL for an address on a given chain. */
 export function addrUrl(chain: Chain, addr: string): string {
   if (chain === "polygon") return `https://polygonscan.com/address/${addr}`;
+  if (chain === "ethereum") return `https://etherscan.io/address/${addr}`;
+  if (chain === "maka") return `https://makascan.io/address/${addr}`;
   return `https://tronscan.org/#/address/${addr}`;
 }
 

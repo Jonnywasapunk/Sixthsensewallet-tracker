@@ -4,6 +4,7 @@ import type { Wallet } from "../types";
 import type { CursorStore } from "./cursor";
 import { fetchEvmBalance, fetchEvmTransfers, type RawTransfer } from "./evm";
 import { fetchTronBalance, fetchTronTransfers } from "./tron";
+import { fetchMakaBalance, fetchMakaTransfers } from "./maka";
 
 export interface RunSummary {
   wallets: number;
@@ -25,16 +26,21 @@ async function fetchTransfers(
     const { transfers, lastTimestamp } = await fetchTronTransfers(stable, address, from);
     return { transfers, nextCursor: String(lastTimestamp) };
   }
-  // EVM: resume from lastBlock + 1
+  if (stable.chain === "maka") {
+    const from = cursor ? Number(cursor) + 1 : 0;
+    const { transfers, lastBlock } = await fetchMakaTransfers(stable, address, from);
+    return { transfers, nextCursor: String(lastBlock) };
+  }
+  // EVM via Etherscan V2 (polygon, ethereum): resume from lastBlock + 1
   const from = cursor ? Number(cursor) + 1 : 0;
   const { transfers, lastBlock } = await fetchEvmTransfers(stable, address, from);
   return { transfers, nextCursor: String(lastBlock) };
 }
 
 async function fetchBalance(stable: Stable, address: string): Promise<string> {
-  return stable.chain === "tron"
-    ? fetchTronBalance(stable, address)
-    : fetchEvmBalance(stable, address);
+  if (stable.chain === "tron") return fetchTronBalance(stable, address);
+  if (stable.chain === "maka") return fetchMakaBalance(stable, address);
+  return fetchEvmBalance(stable, address); // polygon, ethereum (Etherscan V2)
 }
 
 /**

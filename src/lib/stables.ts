@@ -7,7 +7,7 @@
 // (supabase/migrations/0001_init.sql): asset IN ('USDT','USDC').
 // ─────────────────────────────────────────────────────────────────────────────
 
-export type Chain = "polygon" | "tron";
+export type Chain = "polygon" | "tron" | "ethereum" | "maka";
 export type Asset = "USDT" | "USDC" | "POL" | "ARSE";
 
 export interface Stable {
@@ -55,6 +55,17 @@ export const STABLES: Stable[] = [
     decimals: 6,
   },
 
+  // ── MakaChain (chainid 777178, EVM) ─────────────────────────────────────────
+  {
+    // ARSE (on-chain symbol "ARSe") on MakaChain — verified on-chain via
+    // rpc.makachain.io. Indexed through the Maka adapter (RPC balances +
+    // makascan.io Etherscan-compatible API for transfers), NOT Etherscan V2.
+    asset: "ARSE",
+    chain: "maka",
+    contract: "0xB82A23dD2C2F4cd25FDAf9027f7c7ca3e26BA511",
+    decimals: 6,
+  },
+
   // ── Tron (TRC-20) ──────────────────────────────────────────────────────────
   {
     asset: "USDT",
@@ -78,10 +89,19 @@ export function tokenStablesForChain(chain: Chain): Stable[] {
   return STABLES.filter((s) => s.chain === chain && !s.native);
 }
 
-/** Etherscan V2 chainid per EVM chain. */
+/** Etherscan V2 chainid per EVM chain served by Etherscan (NOT MakaChain). */
 export const EVM_CHAIN_ID: Record<string, number> = {
   polygon: 137,
+  ethereum: 1,
 };
+
+/** MakaChain (chainid 777178) — indexed via its own RPC + makascan API, not
+ *  Etherscan. Endpoints are overridable via env for prod. */
+export const MAKA_CHAIN_ID = 777178;
+export const MAKA_RPC_URL =
+  process.env.MAKA_RPC_URL ?? "https://rpc.makachain.io";
+export const MAKASCAN_API_URL =
+  process.env.MAKASCAN_API_URL ?? "https://makascan.io/api";
 
 /** All stables for a given chain. */
 export function stablesForChain(chain: Chain): Stable[] {

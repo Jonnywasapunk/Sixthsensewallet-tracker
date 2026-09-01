@@ -474,12 +474,13 @@ function WalletFilter({
   window,
   t,
 }: {
-  wallets: { id: string; label: string }[];
+  wallets: Wallet[];
   current: string;
   window: WindowKey;
   t: Dict;
 }) {
   // Plain GET form — no client JS needed. Hidden `w` preserves the window.
+  // Same wallet label can exist on multiple chains, so show the chain too.
   return (
     <form method="get" className="flex items-center gap-2">
       <input type="hidden" name="w" value={window} />
@@ -491,7 +492,7 @@ function WalletFilter({
         <option value="all">{t.allWallets}</option>
         {wallets.map((w) => (
           <option key={w.id} value={w.id}>
-            {w.label}
+            {w.label} · {w.chain}
           </option>
         ))}
       </select>
