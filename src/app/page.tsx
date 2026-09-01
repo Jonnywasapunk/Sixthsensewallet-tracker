@@ -2,6 +2,7 @@ import Link from "next/link";
 import { logout } from "./login/actions";
 import {
   getBalances,
+  getCvus,
   getFlowTotals,
   getLastUpdated,
   getMovements,
@@ -19,6 +20,7 @@ import {
 import { getDict, type Dict, type Locale } from "@/lib/i18n";
 import { LanguageToggle } from "@/app/_components/LanguageToggle";
 import { WalletManager } from "@/app/_components/WalletManager";
+import { CvuManager } from "@/app/_components/CvuManager";
 import { refreshNow } from "@/app/actions/refresh";
 import { RefreshButton } from "@/app/_components/RefreshButton";
 import type { Balance } from "@/lib/types";
@@ -43,6 +45,8 @@ export default async function Dashboard({
     werr?: string;
     rok?: string;
     rerr?: string;
+    cok?: string;
+    cerr?: string;
   }>;
 }) {
   const sp = await searchParams;
@@ -50,13 +54,15 @@ export default async function Dashboard({
   const walletId = sp.wallet && sp.wallet !== "all" ? sp.wallet : undefined;
   const { locale, t } = await getDict();
 
-  const [wallets, balances, totals, movements, lastUpdated] = await Promise.all([
-    getWallets(),
-    getBalances(walletId),
-    getFlowTotals({ window, walletId }),
-    getMovements({ window, walletId, limit: MOVEMENTS_LIMIT }),
-    getLastUpdated(),
-  ]);
+  const [wallets, balances, totals, movements, lastUpdated, cvus] =
+    await Promise.all([
+      getWallets(),
+      getBalances(walletId),
+      getFlowTotals({ window, walletId }),
+      getMovements({ window, walletId, limit: MOVEMENTS_LIMIT }),
+      getLastUpdated(),
+      getCvus(),
+    ]);
 
   const qp = (over: Record<string, string>) => {
     const p = new URLSearchParams();
@@ -215,6 +221,9 @@ export default async function Dashboard({
         {/* Manage wallets */}
         <WalletManager wallets={wallets} t={t} />
 
+        {/* CVUs (Kripton reference accounts) */}
+        <CvuManager cvus={cvus} t={t} />
+
         {/* Movements */}
         <section>
           <h2 className="mb-3 text-sm font-semibold uppercase tracking-wide text-text-muted">
@@ -371,7 +380,14 @@ export default async function Dashboard({
 }
 
 function feedbackBanner(
-  sp: { wok?: string; werr?: string; rok?: string; rerr?: string },
+  sp: {
+    wok?: string;
+    werr?: string;
+    rok?: string;
+    rerr?: string;
+    cok?: string;
+    cerr?: string;
+  },
   t: Dict,
 ): { tone: "pos" | "neg"; message: string } | null {
   if (sp.rok === "1") return { tone: "pos", message: t.refreshDone };
@@ -381,6 +397,11 @@ function feedbackBanner(
   if (sp.werr === "exists") return { tone: "neg", message: t.errExists };
   if (sp.werr === "invalid") return { tone: "neg", message: t.errInvalid };
   if (sp.werr === "name") return { tone: "neg", message: t.errName };
+  if (sp.cok === "added") return { tone: "pos", message: t.cvuAdded };
+  if (sp.cok === "removed") return { tone: "pos", message: t.cvuRemoved };
+  if (sp.cerr === "exists") return { tone: "neg", message: t.cerrExists };
+  if (sp.cerr === "invalid") return { tone: "neg", message: t.cerrInvalid };
+  if (sp.cerr === "alias") return { tone: "neg", message: t.cerrAlias };
   return null;
 }
 

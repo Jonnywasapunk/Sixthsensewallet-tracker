@@ -35,3 +35,16 @@ export interface Balance {
 export interface MovementRow extends Transfer {
   wallet_label: string;
 }
+
+/** A CVU/CBU virtual-account reference (from PSVA partner Kripton).
+ *  Reference-only — manually managed, no balances tracked. */
+export interface Cvu {
+  id: string;
+  alias: string;
+  cvu: string;
+  numero: string | null;
+  usuario: string | null;
+  estado: string;
+  descripcion: string;
+  created_at: string;
+}

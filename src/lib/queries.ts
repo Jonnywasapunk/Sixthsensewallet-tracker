@@ -2,7 +2,7 @@ import "server-only";
 import { serviceClient } from "./supabase";
 import { windowStart, type WindowKey } from "./time-windows";
 import type { Asset } from "./stables";
-import type { Balance, MovementRow, Wallet } from "./types";
+import type { Balance, Cvu, MovementRow, Wallet } from "./types";
 
 export async function getWallets(): Promise<Wallet[]> {
   const db = serviceClient();
@@ -26,6 +26,17 @@ export async function getLastUpdated(): Promise<string | null> {
     .maybeSingle();
   if (error) throw error;
   return (data as { updated_at: string } | null)?.updated_at ?? null;
+}
+
+/** CVU/CBU reference list (PSVA partner). Newest first. */
+export async function getCvus(): Promise<Cvu[]> {
+  const db = serviceClient();
+  const { data, error } = await db
+    .from("cvus")
+    .select("*")
+    .order("created_at", { ascending: true });
+  if (error) throw error;
+  return (data ?? []) as Cvu[];
 }
 
 export async function getBalances(walletId?: string): Promise<Balance[]> {

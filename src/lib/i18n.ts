@@ -88,6 +88,24 @@ export interface Dict {
   errExists: string;
   errInvalid: string;
   errName: string;
+  // CVUs (Kripton reference accounts)
+  cvusTitle: string;
+  cvusSubtitle: string;
+  cvuList: string;
+  addCvu: string;
+  fieldAlias: string;
+  fieldCvu: string;
+  fieldNumero: string;
+  fieldUsuario: string;
+  fieldEstado: string;
+  estadoActiva: string;
+  estadoInactiva: string;
+  noCvus: string;
+  cvuAdded: string;
+  cvuRemoved: string;
+  cerrAlias: string;
+  cerrInvalid: string;
+  cerrExists: string;
 }
 
 const en: Dict = {
@@ -150,6 +168,23 @@ const en: Dict = {
   errExists: "That wallet is already being tracked.",
   errInvalid: "That address isn’t valid for the selected chain.",
   errName: "Please enter a name for the wallet.",
+  cvusTitle: "CVUs (Kripton)",
+  cvusSubtitle: "Reference virtual accounts from the PSVA partner (Kripton).",
+  cvuList: "CVU list",
+  addCvu: "Add a CVU",
+  fieldAlias: "Alias",
+  fieldCvu: "CVU/CBU",
+  fieldNumero: "Number",
+  fieldUsuario: "User",
+  fieldEstado: "Status",
+  estadoActiva: "Active",
+  estadoInactiva: "Inactive",
+  noCvus: "No CVUs yet. Add one below.",
+  cvuAdded: "CVU added.",
+  cvuRemoved: "CVU removed.",
+  cerrAlias: "Please enter an alias.",
+  cerrInvalid: "The CVU/CBU must be 22 digits.",
+  cerrExists: "That CVU is already in the list.",
 };
 
 const es: Dict = {
@@ -213,6 +248,23 @@ const es: Dict = {
   errExists: "Esa billetera ya está siendo rastreada.",
   errInvalid: "Esa dirección no es válida para la red seleccionada.",
   errName: "Ingresa un nombre para la billetera.",
+  cvusTitle: "CVUs (Kripton)",
+  cvusSubtitle: "Cuentas virtuales de referencia del socio PSVA (Kripton).",
+  cvuList: "Lista de CVUs",
+  addCvu: "Agregar un CVU",
+  fieldAlias: "Alias",
+  fieldCvu: "CVU/CBU",
+  fieldNumero: "Número",
+  fieldUsuario: "Usuario",
+  fieldEstado: "Estado",
+  estadoActiva: "Activa",
+  estadoInactiva: "Inactiva",
+  noCvus: "Aún no hay CVUs. Agrega uno abajo.",
+  cvuAdded: "CVU agregado.",
+  cvuRemoved: "CVU eliminado.",
+  cerrAlias: "Ingresa un alias.",
+  cerrInvalid: "El CVU/CBU debe tener 22 dígitos.",
+  cerrExists: "Ese CVU ya está en la lista.",
 };
 
 const DICTS: Record<Locale, Dict> = { en, es };
