@@ -226,7 +226,73 @@ export default async function Dashboard({
           {movements.length === 0 ? (
             <Empty>{t.noTransfers}</Empty>
           ) : (
-            <div className="overflow-x-auto rounded-xl border border-border bg-surface">
+            <>
+              {/* Mobile (<sm): stacked cards instead of a wide scrolling table */}
+              <ul className="space-y-2 sm:hidden">
+                {movements.map((m) => (
+                  <li
+                    key={`mc-${m.tx_hash}-${m.direction}-${m.counterparty}-${m.amount}`}
+                    className="rounded-xl border border-border bg-surface p-3"
+                  >
+                    <div className="flex items-center justify-between gap-2">
+                      <div className="flex min-w-0 items-center gap-2">
+                        <span
+                          className={`rounded px-1.5 py-0.5 text-xs font-medium ${
+                            m.direction === "in"
+                              ? "bg-pos/10 text-pos"
+                              : "bg-neg/10 text-neg"
+                          }`}
+                        >
+                          {m.direction === "in" ? t.dirIn : t.dirOut}
+                        </span>
+                        <span className="text-sm font-medium text-text">
+                          {m.asset}
+                        </span>
+                        <span className="truncate text-xs capitalize text-text-muted">
+                          · {m.chain}
+                        </span>
+                      </div>
+                      <span
+                        className={`whitespace-nowrap text-base font-semibold ${
+                          m.direction === "in" ? "text-pos" : "text-neg"
+                        }`}
+                      >
+                        {m.direction === "in" ? "+" : "−"}
+                        {fmtAmount(m.amount)}
+                      </span>
+                    </div>
+
+                    <div className="mt-2 flex items-center justify-between gap-2 text-xs text-text-muted">
+                      <span className="truncate">{m.wallet_label}</span>
+                      <span className="whitespace-nowrap">
+                        {fmtDateTime(m.block_time)}
+                      </span>
+                    </div>
+
+                    <div className="mt-1 flex items-center justify-between gap-3 text-xs">
+                      <a
+                        href={addrUrl(m.chain, m.counterparty)}
+                        target="_blank"
+                        rel="noreferrer"
+                        className="truncate text-accent-600 hover:underline"
+                      >
+                        {t.colCounterparty}: {shortAddr(m.counterparty)}
+                      </a>
+                      <a
+                        href={txUrl(m.chain, m.tx_hash)}
+                        target="_blank"
+                        rel="noreferrer"
+                        className="whitespace-nowrap text-accent-600 hover:underline"
+                      >
+                        {t.colTx}: {shortAddr(m.tx_hash)}
+                      </a>
+                    </div>
+                  </li>
+                ))}
+              </ul>
+
+              {/* >= sm: full table */}
+              <div className="hidden overflow-x-auto rounded-xl border border-border bg-surface sm:block">
               <table className="w-full text-sm">
                 <thead>
                   <tr className="border-b border-border text-left text-xs uppercase tracking-wide text-text-muted">
@@ -295,7 +361,8 @@ export default async function Dashboard({
                   ))}
                 </tbody>
               </table>
-            </div>
+              </div>
+            </>
           )}
         </section>
       </div>
