@@ -23,7 +23,7 @@ import { WalletManager } from "@/app/_components/WalletManager";
 import { CvuManager } from "@/app/_components/CvuManager";
 import { refreshNow } from "@/app/actions/refresh";
 import { RefreshButton } from "@/app/_components/RefreshButton";
-import type { Balance } from "@/lib/types";
+import type { Balance, Wallet } from "@/lib/types";
 
 export const dynamic = "force-dynamic";
 export const maxDuration = 300; // manual "Refresh now" runs the full indexer
@@ -182,7 +182,7 @@ export default async function Dashboard({
               )}
             </span>
           </div>
-          <BalancesGrid balances={balances} t={t} />
+          <BalancesGrid balances={balances} wallets={wallets} t={t} />
         </section>
 
         {/* Flow totals for the window */}
@@ -406,31 +406,64 @@ function feedbackBanner(
   return null;
 }
 
-function BalancesGrid({ balances, t }: { balances: Balance[]; t: Dict }) {
+function BalancesGrid({
+  balances,
+  wallets,
+  t,
+}: {
+  balances: Balance[];
+  wallets: Wallet[];
+  t: Dict;
+}) {
   if (balances.length === 0) {
     return <Empty>{t.noBalances}</Empty>;
   }
+
+  const labelOf = new Map(wallets.map((w) => [w.id, w.label] as const));
+  // Group balances by wallet, keeping the wallet sort order (label asc). Any
+  // wallet_id present in balances but missing from the list is appended.
+  const order: string[] = wallets
+    .map((w) => w.id)
+    .filter((id) => balances.some((b) => b.wallet_id === id));
+  for (const b of balances) if (!order.includes(b.wallet_id)) order.push(b.wallet_id);
+
   return (
-    <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-4">
-      {balances
-        .slice()
-        .sort(
-          (a, b) =>
-            a.chain.localeCompare(b.chain) || a.asset.localeCompare(b.asset),
-        )
-        .map((b) => (
-          <div
-            key={`${b.wallet_id}-${b.asset}`}
-            className="rounded-xl border border-border bg-surface p-4"
-          >
-            <div className="mb-1 text-xs uppercase tracking-wide text-text-muted">
-              {b.asset} · <span className="capitalize">{b.chain}</span>
-            </div>
-            <div className="font-display text-xl text-text">
-              {fmtAmount(b.amount)}
+    <div className="space-y-5">
+      {order.map((wid) => {
+        const rows = balances
+          .filter((b) => b.wallet_id === wid)
+          .slice()
+          .sort(
+            (a, b) =>
+              a.chain.localeCompare(b.chain) || a.asset.localeCompare(b.asset),
+          );
+        if (rows.length === 0) return null;
+        return (
+          <div key={wid}>
+            <h3 className="mb-2 flex flex-wrap items-center gap-x-2 text-xs font-medium uppercase tracking-wide text-text-muted">
+              <span className="text-text">
+                {labelOf.get(wid) ?? shortAddr(wid)}
+              </span>
+              <span className="capitalize">· {rows[0].chain}</span>
+            </h3>
+            <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-4">
+              {rows.map((b) => (
+                <div
+                  key={`${b.wallet_id}-${b.asset}`}
+                  className="rounded-xl border border-border bg-surface p-4"
+                >
+                  <div className="mb-1 text-xs uppercase tracking-wide text-text-muted">
+                    {b.asset}
+                  </div>
+                  <div className="font-display text-xl text-text">
+                    {fmtAmount(b.amount)}
+                  </div>
+                </div>
+              ))}
             </div>
           </div>
-        ))}
+        );
+      })}
     </div>
   );
 }
